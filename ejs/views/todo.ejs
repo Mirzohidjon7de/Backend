@@ -1,0 +1,142 @@
+<%- include("header.ejs")%>
+<p id="todos" class="d-none"><%= JSON.stringify(todos)%></p>
+<section class="col-6 offset-3 hv-100 text-center d-flex justify-content-center">
+  <div class="container">
+    <h2 class="text-center fs-2 my-3 text-danger">TODO</h2>
+    <!-- Button trigger modal -->
+    <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#exampleModal">
+      yangi qo'shish
+    </button>
+    <ul class="">
+      <% todos.forEach(todo => {%>
+      <div class="card mx-auto d-flex justify-content-center mb-3">
+        <div class="card-header fs-1 text-uppercase text-weight-bold <%= todo.status ? 'text-success' : ''%>">
+          <%= todo.title%>
+        </div>
+        <div class="card-body">
+          <p class="card-text"><%= todo.descripton%></p>
+          <a href="/todos/delete/<%= todo.id%>" class="btn btn-danger">delete</a>
+          <a href="/todos/update/<%= todo.id%>" class="btn btn-success yangi_btn" data-bs-toggle="modal"
+            data-bs-target="#exampleUpdateModal" data-todo-id="<%= todo.id%>">yangilash</a>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
+            <label class="form-check-label" for="flexCheckDefault">
+              Default checkbox
+            </label>
+          </div>
+        </div>
+        <div class="card-footer text-muted">
+          <%= todo.createdAt%>
+        </div>
+      </div>
+      <%})%>
+    </ul>
+  </div>
+</section>
+
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-center" id="exampleModalLabel">Yangi izoh uchun</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form action="/todos" method="post">
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Ismingiz</label>
+            <input type="text" class="form-control" name="ism" id="exampleFormControlInput1"
+              placeholder="Ismingizni kiriting">
+          </div>
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Izoh</label>
+            <input type="text" class="form-control" name="izoh" id="exampleFormControlInput1" placeholder="izoh yozing">
+          </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Bekor qilish</button>
+        <button type="submit" class="btn btn-primary">Yuborish</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- update Modal -->
+<div class="modal fade" id="exampleUpdateModal" tabindex="-1" aria-labelledby="exampleUpdateModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title text-center" id="exampleUpdateModal">Malumotni yangilash</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Ismingiz</label>
+            <input type="text" class="form-control" name="ism" id="exampleFormControlInput1" value="">
+          </div>
+          <div class="mb-3">
+            <label for="exampleFormControlInput1" class="form-label">Izoh</label>
+            <input type="text" class="form-control" name="izoh" id="exampleFormControlInput1" value="">
+          </div>
+          <div class="form-floating">
+            <select class="form-select" id="floatingSelect" aria-label="Floating label select example">
+              <option value="ha">Ha</option>
+              <option value="yoq">Yo'q</option>
+            </select>
+            <label for="floatingSelect">Bajarildi</label>
+          </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Bekor qilish</button>
+        <button type="submit" class="btn btn-success">Yangilash</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  const todos = JSON.parse(document.querySelector('p#todos').textContent)
+  let yangiBtn = document.querySelectorAll('.yangi_btn')
+  yangiBtn.forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = e.target.dataset.todoId - 0
+      const todo = todos.find(el => el.id === id)
+
+      document.querySelector('#exampleUpdateModal').querySelector("form").dataset.todoId = id
+      document.querySelector('#exampleUpdateModal').querySelector("input[name='ism']").value = todo.title
+      document.querySelector('#exampleUpdateModal').querySelector("input[name='izoh']").value = todo.descripton
+      document.querySelector('#exampleUpdateModal').querySelector("select").value = todo.status ? 'ha' : 'yoq';
+
+    })
+  })
+
+  document.querySelector('#exampleUpdateModal').querySelector('form').addEventListener('submit', async e => {
+    e.preventDefault()
+    const id = e.target.dataset.todoId
+    const title = document.querySelector('#exampleUpdateModal').querySelector('input[name="ism"]').value
+    const descripton = document.querySelector('#exampleUpdateModal').querySelector('input[name="izoh"]').value
+    const status = document.querySelector('#exampleUpdateModal').querySelector('select').value === 'ha' ? true :
+      false
+
+    const respon = await fetch(`/todos/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        title,
+        descripton,
+        status
+      }),
+      headers: {
+        "Content-type": "application/json"
+      }
+    })
+    if (respon.ok) {
+      window.location.reload()
+    }
+  })
+</script>
+<%- include("footer.ejs")%>
